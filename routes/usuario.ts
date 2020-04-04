@@ -2,6 +2,7 @@ import { Router, Request, Response, request } from "express";
 import { Usuario } from "../models/usuario.model";
 import bcrypt from 'bcrypt';
 import Token from "../classes/token";
+import { verficarToken } from "../middlewares/autenticacion";
 
 const userRoutes = Router();
 
@@ -79,6 +80,54 @@ userRoutes.post('/create', (req: Request, res: Response) => {
             })
         });
 });
+
+userRoutes.post('/update', verficarToken, (req: any, res: Response) => {
+    console.log('req ',req.usuario);
+    
+    const user = {
+        nombre: req.body.nombre || req.usuario.nombre,
+        email: req.body.email || req.usuario.email,
+        avatar: req.body.avatar || req.usuarioavatar
+    }
+
+    Usuario.findByIdAndUpdate( req.usuario._id, user, { new: true }, (err, userDB) => {
+        if (err) throw err;
+
+        if ( !userDB ) {
+            return res.json({
+                ok: false,
+                mensaje: 'No existe un usuario con es ID'
+            });            
+        }
+
+        const tokenUser = Token.getJwtToken({
+            _id: userDB._id,
+            nombre: userDB.nombre,
+            email: userDB.email,
+            avatar: userDB.avatar
+        }) 
+        res.json({
+            ok: true,
+            token: tokenUser,
+            mensaje: 'Usuario actualizado'
+        })
+    });
+    // res.json({
+    //     ok: true,
+    //     usuario: req.usuario,
+    //     mensaje: 'Token verificado'
+    // });
+}); 
+
+userRoutes.get('/', [verficarToken], (req:any, res: Response) => {
+    const usuario = req.usuario;
+
+
+    res.json({
+        ok: true,
+        usuario
+    })
+})
 
 
 

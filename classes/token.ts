@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 export default class Token {
     private static seed: string = 'my-sign-dev';
-    private static caducidad: string = '1d';
+    private static caducidad: string = '7d';
 
     constructor() {}
 
